@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점심 뭐 먹지? - 날씨별 메뉴 추천</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(-25%);
+                animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+            }
+            50% {
+                transform: translateY(0);
+                animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+            }
+        }
+        .animate-bounce {
+            animation: bounce 1s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-orange-400 via-pink-400 to-purple-500 p-4 flex items-center justify-center">
+    <div class="max-w-3xl w-full">
+        <!-- 헤더 -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <span class="text-5xl animate-bounce">🍴</span>
+                <h1 class="text-5xl font-bold text-white">점심 뭐 먹지?</h1>
+                <span class="text-5xl animate-bounce">☕</span>
+            </div>
+            <p class="text-white text-lg">오늘 날씨에 딱 맞는 메뉴를 추천해드려요</p>
+        </div>
+
+        <!-- 입력 카드 -->
+        <div class="bg-white rounded-3xl p-8 shadow-2xl mb-6">
+            <div class="space-y-6">
+                <!-- 날씨 선택 -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-3 text-lg">
+                        🌤️ 오늘 날씨는?
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <button onclick="selectWeather('맑음')" id="btn-맑음" class="weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium">
+                            <div class="text-2xl mb-1">☀️</div>
+                            <div class="text-sm">맑음</div>
+                        </button>
+                        <button onclick="selectWeather('흐림')" id="btn-흐림" class="weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium">
+                            <div class="text-2xl mb-1">☁️</div>
+                            <div class="text-sm">흐림</div>
+                        </button>
+                        <button onclick="selectWeather('비')" id="btn-비" class="weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium">
+                            <div class="text-2xl mb-1">🌧️</div>
+                            <div class="text-sm">비</div>
+                        </button>
+                        <button onclick="selectWeather('눈')" id="btn-눈" class="weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium">
+                            <div class="text-2xl mb-1">❄️</div>
+                            <div class="text-sm">눈</div>
+                        </button>
+                        <button onclick="selectWeather('바람')" id="btn-바람" class="weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium">
+                            <div class="text-2xl mb-1">💨</div>
+                            <div class="text-sm">바람</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 기온 입력 -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-3 text-lg">
+                        🌡️ 기온 (선택사항)
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="temperature" placeholder="예: 25" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none text-lg">
+                        <span class="text-2xl text-gray-600">°C</span>
+                    </div>
+                </div>
+
+                <!-- 추천 버튼 -->
+                <button onclick="getRecommendation()" id="recommendBtn" class="w-full py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xl rounded-xl hover:from-orange-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                    메뉴 추천받기 🍽️
+                </button>
+            </div>
+        </div>
+
+        <!-- 추천 결과 -->
+        <div id="resultContainer" class="hidden bg-white rounded-3xl p-8 shadow-2xl animate-fadeIn">
+            <div class="space-y-6">
+                <!-- 메인 메뉴 -->
+                <div class="text-center pb-6 border-b-2 border-gray-100">
+                    <div class="text-6xl mb-4">🍽️</div>
+                    <h2 id="mainMenu" class="text-4xl font-bold text-gray-800 mb-4"></h2>
+                    <p id="description" class="text-gray-600 text-lg leading-relaxed"></p>
+                </div>
+
+                <!-- 대체 메뉴 -->
+                <div id="alternativesContainer" class="bg-orange-50 rounded-2xl p-6 hidden">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">🔄 다른 선택지</h3>
+                    <div id="alternatives" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- 사이드 & 음료 -->
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div id="sideDishContainer" class="bg-pink-50 rounded-2xl p-6 hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <span>🥗</span> 사이드 메뉴
+                        </h3>
+                        <p id="sideDish" class="text-gray-700"></p>
+                    </div>
+                    
+                    <div id="drinkContainer" class="bg-purple-50 rounded-2xl p-6 hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <span>🥤</span> 추천 음료
+                        </h3>
+                        <p id="drink" class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <!-- 팁 -->
+                <div id="tipContainer" class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200 hidden">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        <span>💡</span> 맛있게 먹는 팁
+                    </h3>
+                    <p id="tip" class="text-gray-700 italic"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="text-center mt-8 text-white text-sm">
+            <p>🍴 오늘도 맛있는 점심 되세요! 🍴</p>
+        </div>
+    </div>
+
+    <script>
+        let selectedWeather = '';
+
+        function selectWeather(weather) {
+            selectedWeather = weather;
+            
+            // 모든 버튼 초기화
+            document.querySelectorAll('.weather-btn').forEach(btn => {
+                btn.className = 'weather-btn p-4 rounded-xl border-2 border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 font-medium';
+            });
+            
+            // 선택된 버튼 강조
+            const selectedBtn = document.getElementById('btn-' + weather);
+            selectedBtn.className = 'weather-btn p-4 rounded-xl border-2 border-orange-500 bg-orange-50 text-orange-700 scale-105 transition-all duration-200 font-medium';
+        }
+
+        async function getRecommendation() {
+            if (!selectedWeather) {
+                alert('날씨를 선택해주세요!');
+                return;
+            }
+
+            const temperature = document.getElementById('temperature').value;
+            const btn = document.getElementById('recommendBtn');
+            const resultContainer = document.getElementById('resultContainer');
+
+            // 버튼 비활성화
+            btn.disabled = true;
+            btn.textContent = '메뉴 고르는 중... 🍳';
+            resultContainer.classList.add('hidden');
+
+            try {
+                const today = new Date().toLocaleDateString('ko-KR', {
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+
+                const tempInfo = temperature ? `기온은 ${temperature}도` : '기온 정보 없음';
+
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [{
+                            role: 'user',
+                            content: `오늘은 ${today}이고, 날씨는 ${selectedWeather}입니다. ${tempInfo}입니다.
+
+이 날씨에 딱 맞는 점심 메뉴를 추천해주세요. 반드시 다음 JSON 형식으로만 답변하고, 다른 텍스트는 포함하지 마세요:
+
+{
+  "mainMenu": "추천 메인 메뉴 이름",
+  "description": "이 메뉴를 추천하는 이유 (2-3문장, 날씨와 연관지어)",
+  "alternatives": ["대체 메뉴1", "대체 메뉴2", "대체 메뉴3"],
+  "sideDish": "어울리는 사이드 메뉴",
+  "drink": "추천 음료",
+  "tip": "맛있게 먹는 팁 (1문장)"
+}
+
+구체적이고 실용적인 한식, 중식, 일식, 양식 등 다양한 메뉴를 추천해주세요.`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                console.log('API Response:', data);
+
+                if (!data.content || !data.content[0]) {
+                    console.error('Invalid response structure:', data);
+                    throw new Error('API 응답 구조가 올바르지 않습니다.');
+                }
+
+                const content = data.content[0].text;
+                console.log('Content:', content);
+
+                // JSON 파싱
+                let cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+                cleanContent = cleanContent.replace(/```\n?/g, '').trim();
+
+                const firstBrace = cleanContent.indexOf('{');
+                const lastBrace = cleanContent.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+                }
+
+                console.log('Clean content:', cleanContent);
+                const menuData = JSON.parse(cleanContent);
+
+                if (!menuData.mainMenu || !menuData.description) {
+                    throw new Error('Invalid menu data');
+                }
+
+                // 결과 표시
+                displayResult(menuData);
+
+            } catch (error) {
+                console.error('Error:', error);
+                console.error('Error details:', error.message, error.stack);
+                alert('메뉴 추천 중 오류가 발생했습니다.\n오류: ' + error.message + '\n\n브라우저 콘솔(F12)을 확인해주세요.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '메뉴 추천받기 🍽️';
+            }
+        }
+
+        function displayResult(data) {
+            // 메인 메뉴
+            document.getElementById('mainMenu').textContent = data.mainMenu;
+            document.getElementById('description').textContent = data.description;
+
+            // 대체 메뉴
+            if (data.alternatives && data.alternatives.length > 0) {
+                const alternativesContainer = document.getElementById('alternativesContainer');
+                const alternativesDiv = document.getElementById('alternatives');
+                alternativesDiv.innerHTML = '';
+                data.alternatives.forEach(alt => {
+                    const span = document.createElement('span');
+                    span.className = 'px-4 py-2 bg-white rounded-full text-gray-700 font-medium shadow-sm';
+                    span.textContent = alt;
+                    alternativesDiv.appendChild(span);
+                });
+                alternativesContainer.classList.remove('hidden');
+            }
+
+            // 사이드 메뉴
+            if (data.sideDish) {
+                document.getElementById('sideDish').textContent = data.sideDish;
+                document.getElementById('sideDishContainer').classList.remove('hidden');
+            }
+
+            // 음료
+            if (data.drink) {
+                document.getElementById('drink').textContent = data.drink;
+                document.getElementById('drinkContainer').classList.remove('hidden');
+            }
+
+            // 팁
+            if (data.tip) {
+                document.getElementById('tip').textContent = `"${data.tip}"`;
+                document.getElementById('tipContainer').classList.remove('hidden');
+            }
+
+            // 결과 컨테이너 표시
+            document.getElementById('resultContainer').classList.remove('hidden');
+            
+            // 결과로 스크롤
+            document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
